@@ -15,106 +15,75 @@ let activeInputField = null;
 
 const app = document.getElementById('app');
 
-// --- Navigation ---
 function showSplash() {
     app.innerHTML = `
-        <div class="splash-screen h-screen flex flex-col items-center justify-center bg-slate-900" onclick="showHome()">
-            <h1 class="text-5xl font-bold text-green-400 mb-2">Panda Royale</h1>
-            <p class="text-slate-500 animate-pulse uppercase tracking-widest text-sm">Tap to Start</p>
+        <div class="h-full flex flex-col items-center justify-center" onclick="showHome()">
+            <h1 class="text-6xl font-black text-green-400 mb-2">PANDA</h1>
+            <h2 class="text-2xl font-bold text-slate-500 tracking-[0.3em] uppercase">Royale</h2>
+            <p class="mt-12 text-slate-600 animate-pulse text-sm font-bold">TAP TO START</p>
         </div>`;
 }
 
 function showHome() {
-    const gameList = games.map((game, index) => `
-        <div class="bg-slate-800 p-4 rounded-xl mb-3 flex justify-between items-center border-l-4 border-green-500 shadow-lg active:scale-[0.98] transition-all">
-            <div class="flex-1 cursor-pointer" onclick="resumeGame(${index})">
-                <div class="font-bold text-lg text-slate-100">Game #${games.length - index}</div>
-                <div class="text-xs text-slate-400 mb-1">${game.date}</div>
-                <div class="text-2xl font-bold text-green-400">${calculateGrandTotal(game)} pts</div>
+    const list = games.map((g, i) => `
+        <div class="bg-slate-800/50 p-5 rounded-2xl mb-4 flex justify-between items-center border border-slate-700 active:scale-95 transition-all" onclick="resumeGame(${i})">
+            <div>
+                <div class="font-black text-slate-400 text-xs uppercase tracking-widest">Game #${games.length - i}</div>
+                <div class="text-xl font-bold">${g.date}</div>
             </div>
-            <button onclick="deleteGame(event, ${index})" class="p-3 bg-red-900/10 rounded-full ml-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-            </button>
+            <div class="text-right flex items-center gap-4">
+                <div class="text-3xl font-black text-green-400">${calculateGrandTotal(g)}</div>
+                <button onclick="deleteGame(event, ${i})" class="text-red-900 bg-red-500/10 p-2 rounded-full">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+            </div>
         </div>`).join('');
 
     app.innerHTML = `
-        <div class="p-6 max-w-2xl mx-auto animate-fadeIn">
-            <h1 class="text-3xl font-bold mb-8 text-slate-100">History</h1>
-            <div class="mb-28">${gameList || '<p class="text-center text-slate-500 py-10">No games found.</p>'}</div>
-            <div class="fixed bottom-8 left-6 right-6 max-w-2xl mx-auto">
-                <button onclick="startNewGame()" class="w-full bg-green-600 py-4 rounded-2xl font-bold text-xl shadow-2xl active:bg-green-500">
-                    + New Game
-                </button>
-            </div>
+        <div class="p-6 h-full flex flex-col">
+            <h1 class="text-3xl font-black mb-8">History</h1>
+            <div class="flex-1 overflow-y-auto pr-2">${list || '<p class="text-slate-600 italic">No games saved.</p>'}</div>
+            <button onclick="startNewGame()" class="w-full bg-green-500 py-5 rounded-3xl font-black text-xl text-black mt-6 shadow-xl shadow-green-500/20">NEW GAME</button>
         </div>`;
-}
-
-function startNewGame() {
-    activeGame = {
-        id: Date.now(),
-        date: new Date().toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-        currentRound: 0,
-        rounds: Array(10).fill(null).map(() => ({
-            yellow: [], purple: [], blue: [], red: [], green: [], clear: [], pink: [],
-            blueHasSparkle: false
-        }))
-    };
-    renderGame();
-}
-
-function resumeGame(index) { activeGame = games[index]; renderGame(); }
-
-function deleteGame(event, index) {
-    event.stopPropagation();
-    if (confirm("Delete this game?")) {
-        games.splice(index, 1);
-        localStorage.setItem('panda_games', JSON.stringify(games));
-        showHome();
-    }
 }
 
 function renderGame() {
     const roundNum = activeGame.currentRound + 1;
     app.innerHTML = `
-        <div class="p-4 max-w-4xl mx-auto pb-[480px] animate-fadeIn">
-            <div class="sticky top-0 bg-[#1e293b]/95 backdrop-blur py-4 z-50 border-b border-slate-700">
-                <div class="flex justify-between items-center max-w-xl mx-auto">
-                    <button onclick="showHome()" class="text-slate-500 font-bold text-[10px] bg-slate-800/50 px-3 py-2 rounded uppercase">Exit</button>
-                    <div class="flex items-center gap-6">
-                        <button onclick="changeRound(-1)" class="text-3xl font-bold ${roundNum === 1 ? 'opacity-5 pointer-events-none' : 'text-blue-500'}">←</button>
-                        <div class="flex flex-col items-center">
-                            <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Round ${roundNum}/10</span>
-                            <span id="round-total-display" class="text-5xl font-black text-white leading-tight">0</span>
-                        </div>
-                        <button onclick="changeRound(1)" class="text-3xl font-bold ${roundNum === 10 ? 'opacity-5 pointer-events-none' : 'text-blue-500'}">→</button>
+        <div class="bg-[#0f172a] pt-4 pb-2 border-b border-slate-800 px-4">
+            <div class="flex justify-between items-center max-w-xl mx-auto">
+                <button onclick="showHome()" class="text-[10px] font-black uppercase text-slate-500 bg-slate-900 px-3 py-2 rounded-lg">Exit</button>
+                <div class="flex items-center gap-6">
+                    <button onclick="changeRound(-1)" class="text-4xl font-bold ${roundNum === 1 ? 'opacity-0' : 'text-blue-500'}">←</button>
+                    <div class="text-center">
+                        <div class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Round ${roundNum}/10</div>
+                        <div id="round-total-display" class="text-5xl font-black leading-none mt-1">0</div>
                     </div>
-                    <div class="w-12"></div>
+                    <button onclick="changeRound(1)" class="text-4xl font-bold ${roundNum === 10 ? 'opacity-0' : 'text-blue-500'}">→</button>
                 </div>
+                <div class="w-10"></div>
             </div>
+        </div>
 
-            <div class="space-y-3 mt-6">
-                ${diceConfig.map(dice => renderDiceRow(dice)).join('')}
-            </div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-3 pb-12">
+            ${diceConfig.map(dice => renderDiceRow(dice)).join('')}
             
-            <div class="fixed bottom-0 left-0 right-0 bg-slate-900 p-4 border-t border-slate-700 shadow-2xl z-50">
-                <div class="flex justify-center -mt-16 mb-4">
-                    <div class="white-total-box min-w-[220px]">
-                        <span class="text-[10px] font-black uppercase tracking-[0.2em] block">Grand Total</span>
-                        <span id="grand-total-box" class="text-4xl font-black">0</span>
-                    </div>
-                </div>
-                <div id="active-input-display" class="text-center text-xl font-bold mb-3 h-8 text-green-400 tracking-widest">-</div>
-                <div class="grid grid-cols-4 gap-2 max-w-xl mx-auto">
-                    ${[1,2,3].map(n => `<button onclick="kpInput('${n}')" class="bg-slate-700 py-3 rounded-lg text-xl font-bold active:bg-slate-600">${n}</button>`).join('')}
-                    <button onclick="kpToggleNeg()" class="bg-red-900/40 py-3 rounded-lg text-xl font-bold active:bg-red-800">+/-</button>
-                    ${[4,5,6].map(n => `<button onclick="kpInput('${n}')" class="bg-slate-700 py-3 rounded-lg text-xl font-bold active:bg-slate-600">${n}</button>`).join('')}
-                    <button onclick="kpInput('.')" class="bg-slate-700 py-3 rounded-lg text-xl font-bold">.</button>
-                    ${[7,8,9,0].map(n => `<button onclick="kpInput('${n}')" class="bg-slate-700 py-3 rounded-lg text-xl font-bold active:bg-slate-600">${n}</button>`).join('')}
-                    <button onclick="kpClear()" class="bg-slate-800 py-4 rounded-lg font-bold text-slate-400 text-xs">CLR</button>
-                    <button onclick="kpEnter()" class="col-span-3 bg-green-600 py-4 rounded-lg font-bold text-xl active:bg-green-500">ENTER VALUE</button>
-                </div>
+            <div class="grand-total-banner p-6 rounded-3xl mt-8 mb-4 flex justify-between items-center">
+                <span class="font-black uppercase tracking-widest">Grand Total</span>
+                <span id="grand-total-summary" class="text-4xl font-black">0</span>
+            </div>
+        </div>
+
+        <div id="keypad-container" class="h-[35vh] bg-slate-900 p-4 border-t border-slate-800 shadow-2xl flex flex-col">
+            <div id="active-input-display" class="text-center text-lg font-black mb-2 h-6 tracking-widest text-white uppercase opacity-60">-</div>
+            <div id="kp-grid" class="grid grid-cols-4 gap-2 flex-1">
+                ${[1,2,3].map(n => `<button onclick="kpInput('${n}')" class="kp-btn bg-slate-800 rounded-xl text-2xl font-black text-white">${n}</button>`).join('')}
+                <button onclick="kpToggleNeg()" class="kp-btn bg-red-500/20 rounded-xl text-2xl font-black text-white">+/-</button>
+                ${[4,5,6].map(n => `<button onclick="kpInput('${n}')" class="kp-btn bg-slate-800 rounded-xl text-2xl font-black text-white">${n}</button>`).join('')}
+                <button onclick="kpInput('.')" class="kp-btn bg-slate-800 rounded-xl text-2xl font-black text-white">.</button>
+                ${[7,8,9,0].map(n => `<button onclick="kpInput('${n}')" class="kp-btn bg-slate-800 rounded-xl text-2xl font-black text-white">${n}</button>`).join('')}
+                <button onclick="kpClear()" class="kp-btn bg-slate-800/50 rounded-xl font-black text-xs text-slate-400">CLR</button>
+                <button id="enter-btn" onclick="kpEnter()" class="col-span-3 bg-green-600 rounded-xl font-black text-xl text-white shadow-lg">ENTER VALUE</button>
             </div>
         </div>`;
     updateAllDisplays();
@@ -123,61 +92,71 @@ function renderGame() {
 function renderDiceRow(dice) {
     const roundData = activeGame.rounds[activeGame.currentRound];
     return `
-        <div onclick="setActiveInput('${dice.id}')" id="row-${dice.id}" class="dice-row bg-slate-800/40 p-4 rounded-xl border-l-8 border-transparent cursor-pointer">
-            <div class="flex justify-between items-center mb-1">
-                <span class="font-black text-lg uppercase tracking-tight label-text">${dice.label}</span>
-                <span id="${dice.id}-sum" class="text-2xl font-black sum-text">0</span>
+        <div onclick="setActiveInput('${dice.id}')" id="row-${dice.id}" class="dice-row bg-slate-900/50 p-5 rounded-2xl border-l-8 border-transparent cursor-pointer">
+            <div class="flex justify-between items-center">
+                <span class="font-black uppercase tracking-tight">${dice.label}</span>
+                <span id="${dice.id}-sum" class="text-3xl font-black">0</span>
             </div>
             ${dice.hasGlitter ? `
-                <button onclick="event.stopPropagation(); toggleSparkle();" class="mb-2 text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-widest ${roundData.blueHasSparkle ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-400'}">
-                    ${roundData.blueHasSparkle ? '✨ Sparkle Active (×2)' : 'No Sparkle'}
+                <button onclick="event.stopPropagation(); toggleSparkle();" class="mt-2 text-[10px] px-4 py-2 rounded-full font-black uppercase tracking-widest ${roundData.blueHasSparkle ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-500'}">
+                    ${roundData.blueHasSparkle ? 'Sparkle Activated ✨' : 'No Sparkle'}
                 </button>` : ''}
-            <div id="${dice.id}-values" class="flex flex-wrap gap-2 min-h-[20px]"></div>
+            <div id="${dice.id}-values" class="flex flex-wrap gap-2 mt-3 min-h-[20px]"></div>
         </div>`;
 }
 
-// --- Interaction Logic ---
+// --- Dynamic Selection & Coloring ---
 
 function setActiveInput(id) {
     activeInputField = id;
     const config = diceConfig.find(d => d.id === id);
     
-    // Reset all rows
+    // 1. Reset Dice Rows
     diceConfig.forEach(d => {
         const row = document.getElementById(`row-${d.id}`);
-        row.style.backgroundColor = ""; // Reset to CSS default
-        row.style.borderColor = "transparent";
-        row.classList.remove('text-black', 'text-white');
-        row.style.color = "";
+        if (row) { row.style.backgroundColor = ""; row.style.color = ""; }
     });
-
-    // Highlight active row
+    
+    // 2. Highlight Active Row
     const activeRow = document.getElementById(`row-${id}`);
     activeRow.style.backgroundColor = config.color;
-    activeRow.style.borderColor = config.color;
-    activeRow.style.color = config.text; // Use the contrast color defined in config
+    activeRow.style.color = config.text;
+
+    // 3. Update Keypad Container
+    const keypad = document.getElementById('keypad-container');
+    keypad.style.backgroundColor = config.color;
+    
+    // 4. Update Keypad Buttons (Dynamic Contrast)
+    const btns = document.querySelectorAll('.kp-btn');
+    const enterBtn = document.getElementById('enter-btn');
+    
+    btns.forEach(b => {
+        b.style.backgroundColor = config.text === '#fff' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)';
+        b.style.color = config.text;
+    });
+
+    enterBtn.style.backgroundColor = config.text === '#fff' ? '#fff' : '#000';
+    enterBtn.style.color = config.text === '#fff' ? '#000' : '#fff';
     
     updateKpDisplay();
 }
 
-// --- Scoring Logic ---
+// --- Math & Storage Logic ---
 
 function calculateRoundTotal(round) {
-    let roundSum = 0;
+    let sum = 0;
     diceConfig.forEach(d => {
-        const values = round[d.id] || [];
-        const sum = values.reduce((a, b) => a + b, 0);
-        if (d.id === 'purple') roundSum += (sum * 2);
-        else if (d.id === 'blue' && round.blueHasSparkle) roundSum += (sum * 2);
-        else if (d.id === 'red') roundSum += (sum * values.length);
-        else roundSum += sum;
+        const vals = round[d.id] || [];
+        const s = vals.reduce((a, b) => a + b, 0);
+        if (d.id === 'purple') sum += (s * 2);
+        else if (d.id === 'blue' && round.blueHasSparkle) sum += (s * 2);
+        else if (d.id === 'red') sum += (s * vals.length);
+        else sum += s;
     });
-    return roundSum;
+    return sum;
 }
 
-function calculateGrandTotal(game) {
-    return game.rounds.reduce((total, round) => total + calculateRoundTotal(round), 0);
-}
+function calculateGrandTotal(game) { return game.rounds.reduce((total, round) => total + calculateRoundTotal(round), 0); }
 
 function updateAllDisplays() {
     const round = activeGame.rounds[activeGame.currentRound];
@@ -191,18 +170,16 @@ function updateAllDisplays() {
         
         document.getElementById(`${d.id}-sum`).textContent = final;
         document.getElementById(`${d.id}-values`).innerHTML = values.map((v, i) => `
-            <span class="bg-black/20 px-3 py-1 rounded text-sm font-bold border border-black/10">
-                ${v} <button onclick="event.stopPropagation(); removeVal('${d.id}', ${i})" class="ml-2 font-black">×</button>
+            <span class="bg-black/20 px-3 py-1 rounded-lg text-sm font-black border border-black/10">
+                ${v} <button onclick="event.stopPropagation(); removeVal('${d.id}', ${i})" class="ml-2">×</button>
             </span>`).join('');
     });
     document.getElementById('round-total-display').textContent = calculateRoundTotal(round);
-    document.getElementById('grand-total-box').textContent = calculateGrandTotal(activeGame);
-    
-    // Maintain highlight after UI re-render
+    document.getElementById('grand-total-summary').textContent = calculateGrandTotal(activeGame);
     if (activeInputField) setActiveInput(activeInputField);
 }
 
-// --- Input Controls ---
+// --- Standard Handlers (KP, Rounds, Storage) ---
 
 function kpInput(val) { keypadValue += val; updateKpDisplay(); }
 function kpClear() { keypadValue = ''; updateKpDisplay(); }
@@ -214,9 +191,7 @@ function kpToggleNeg() {
 }
 function updateKpDisplay() {
     const display = document.getElementById('active-input-display');
-    if (display) {
-        display.textContent = keypadValue || (activeInputField ? `Adding to ${activeInputField.toUpperCase()}` : '-');
-    }
+    if (display) display.textContent = keypadValue || (activeInputField ? `Adding to ${activeInputField.toUpperCase()}` : '-');
 }
 function kpEnter() {
     if (!activeInputField || keypadValue === '' || keypadValue === '-') return;
@@ -228,11 +203,34 @@ function changeRound(step) {
     if (next >= 0 && next < 10) { activeGame.currentRound = next; renderGame(); }
 }
 function removeVal(id, idx) { activeGame.rounds[activeGame.currentRound][id].splice(idx, 1); updateAllDisplays(); saveGame(); }
-function toggleSparkle() { activeGame.rounds[activeGame.currentRound].blueHasSparkle = !activeGame.rounds[activeGame.currentRound].blueHasSparkle; updateAllDisplays(); }
+function toggleSparkle() { 
+    activeGame.rounds[activeGame.currentRound].blueHasSparkle = !activeGame.rounds[activeGame.currentRound].blueHasSparkle; 
+    updateAllDisplays(); 
+}
 function saveGame() {
     const idx = games.findIndex(g => g.id === activeGame.id);
     if (idx > -1) games[idx] = activeGame; else games.unshift(activeGame);
     localStorage.setItem('panda_games', JSON.stringify(games));
+}
+function startNewGame() {
+    activeGame = {
+        id: Date.now(),
+        date: new Date().toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        currentRound: 0,
+        rounds: Array(10).fill(null).map(() => ({
+            yellow: [], purple: [], blue: [], red: [], green: [], clear: [], pink: [], blueHasSparkle: false
+        }))
+    };
+    renderGame();
+}
+function resumeGame(index) { activeGame = games[index]; renderGame(); }
+function deleteGame(event, index) {
+    event.stopPropagation();
+    if (confirm("Delete this game?")) {
+        games.splice(index, 1);
+        localStorage.setItem('panda_games', JSON.stringify(games));
+        showHome();
+    }
 }
 
 showSplash();
