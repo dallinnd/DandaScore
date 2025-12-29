@@ -16,18 +16,17 @@ let activeInputField = null;
 
 const app = document.getElementById('app');
 
-// --- Navigation ---
 function showSplash() {
     app.innerHTML = `<div class="h-full flex flex-col items-center justify-center bg-slate-900" onclick="showHome()">
         <h1 class="text-6xl font-black text-green-400">PANDA</h1>
         <h2 class="text-2xl font-bold text-slate-500 tracking-[0.3em]">ROYALE</h2>
-        <p class="mt-12 text-slate-600 animate-pulse font-bold uppercase text-xs tracking-widest text-center">Tap to Play</p>
+        <p class="mt-12 text-slate-600 animate-pulse font-bold uppercase text-xs tracking-widest">Tap to Play</p>
     </div>`;
 }
 
 function showHome() {
     const list = games.map((g, i) => `
-        <div class="bg-slate-800/40 p-5 rounded-2xl mb-4 flex justify-between items-center border border-slate-700/50 shadow-lg" onclick="resumeGame(${i})">
+        <div class="bg-slate-800/40 p-5 rounded-2xl mb-4 flex justify-between items-center border border-slate-700/50" onclick="resumeGame(${i})">
             <div><div class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Game #${games.length - i}</div>
             <div class="text-lg font-bold text-white">${g.date}</div></div>
             <div class="flex items-center gap-4">
@@ -40,7 +39,7 @@ function showHome() {
 
     app.innerHTML = `<div class="p-6 h-full flex flex-col animate-fadeIn">
         <h1 class="text-4xl font-black mb-8 tracking-tighter">History</h1>
-        <div class="flex-1 overflow-y-auto">${list || '<p class="text-slate-600 italic text-center py-20">No games saved.</p>'}</div>
+        <div class="flex-1 overflow-y-auto">${list || '<p class="text-slate-600 italic text-center py-20">No games saved yet.</p>'}</div>
         <button onclick="startNewGame()" class="w-full bg-green-500 py-5 rounded-3xl font-black text-xl text-black mt-6">NEW GAME</button>
     </div>`;
 }
@@ -69,7 +68,7 @@ function renderGame() {
                     if (dice.isWild) return renderWildDiceSection(dice, roundData);
                     let sparkleBtn = dice.id === 'blue' ? `
                         <button id="sparkle-btn" onclick="toggleSparkle()" class="w-full py-3 mb-2 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${roundData.blueHasSparkle ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-800 text-slate-500'}">
-                            ${roundData.blueHasSparkle ? 'Sparkle Activated ✨🤩' : 'No Sparkle'}
+                            ${roundData.blueHasSparkle ? 'Sparkle Activated ✨' : 'No Sparkle'}
                         </button>` : '';
                     return sparkleBtn + renderDiceRow(dice);
                 }).join('')}
@@ -98,48 +97,57 @@ function renderGame() {
 
 function renderWildDiceSection(dice, roundData) {
     const targets = diceConfig.filter(d => d.id !== 'yellow' && d.id !== 'wild');
+    
+    // The Input Row (Gradient)
+    const wildInputRow = `
+        <div onclick="setActiveInput('wild')" id="row-wild" class="dice-row wild-gradient p-5 rounded-2xl border-l-8 border-transparent cursor-pointer mb-2">
+            <div class="flex justify-between items-center text-white">
+                <span class="font-black uppercase tracking-tight">${dice.label}</span>
+                <span id="wild-sum" class="text-3xl font-black">0</span>
+            </div>
+            <div id="wild-values" class="flex flex-wrap gap-2 mt-3 min-h-[20px]"></div>
+        </div>`;
+
+    // The Target Selection Row (Color Chips)
+    const targetSelection = `
+        <div class="flex flex-wrap gap-2 mb-4 p-2 bg-slate-900/50 rounded-xl">
+            ${targets.map(t => `
+                <button onclick="setWildTarget('${t.id}')" 
+                    class="color-chip px-3 py-2 rounded-lg text-[10px] font-black uppercase flex-1"
+                    style="background: ${roundData.wildTarget === t.id ? t.color : 'transparent'}; 
+                           color: ${roundData.wildTarget === t.id ? t.text : 'white'};
+                           border: 2px solid ${t.color}">
+                    ${t.id}
+                </button>
+            `).join('')}
+        </div>`;
+
     return `
         <div class="mt-8 border-t border-slate-800 pt-6">
+            ${wildInputRow}
             <div class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 px-2">Select Wild Target:</div>
-            <div class="flex flex-wrap gap-2 mb-4 p-2 bg-slate-900/50 rounded-xl">
-                ${targets.map(t => `
-                    <button onclick="setWildTarget('${t.id}')" 
-                        class="color-chip px-3 py-2 rounded-lg text-[10px] font-black uppercase flex-1"
-                        style="background: ${roundData.wildTarget === t.id ? t.color : 'transparent'}; 
-                               color: ${roundData.wildTarget === t.id ? t.text : 'white'};
-                               border: 2px solid ${t.color}">
-                        ${t.id}
-                    </button>
-                `).join('')}
-            </div>
-            <div onclick="setActiveInput('wild')" id="row-wild" class="dice-row wild-gradient p-5 rounded-2xl border-l-8 border-transparent cursor-pointer">
-                <div class="flex justify-between items-center text-white">
-                    <span class="font-black uppercase tracking-tight">${dice.label}</span>
-                    <span id="wild-sum" class="text-3xl font-black">0</span>
-                </div>
-                <div id="wild-values" class="flex flex-wrap gap-2 mt-3 min-h-[20px]"></div>
-            </div>
+            ${targetSelection}
         </div>`;
 }
 
 function renderDiceRow(dice) {
     return `<div onclick="setActiveInput('${dice.id}')" id="row-${dice.id}" class="dice-row bg-slate-900/40 p-5 rounded-2xl border-l-8 border-transparent cursor-pointer">
-        <div class="flex justify-between items-center">
+        <div class="flex justify-between items-center text-white">
             <span class="font-black uppercase tracking-tight">${dice.label}</span>
-            <span id="${dice.id}-sum" class="text-3xl font-black text-white">0</span>
+            <span id="${dice.id}-sum" class="text-3xl font-black">0</span>
         </div>
         <div id="${dice.id}-values" class="flex flex-wrap gap-2 mt-3 min-h-[20px]"></div>
     </div>`;
 }
 
-// --- Logic & Math ---
+// --- Interaction Logic ---
 
 function setWildTarget(targetId) {
     const roundData = activeGame.rounds[activeGame.currentRound];
     roundData.wildTarget = roundData.wildTarget === targetId ? null : targetId;
     updateAllDisplays();
     
-    // Partial re-render of chips to avoid scroll jump
+    // Visual feedback for chips
     const targets = diceConfig.filter(d => d.id !== 'yellow' && d.id !== 'wild');
     targets.forEach(t => {
         const btn = document.querySelector(`button[onclick="setWildTarget('${t.id}')"]`);
@@ -154,6 +162,8 @@ function setWildTarget(targetId) {
 function setActiveInput(id) {
     activeInputField = id;
     const config = diceConfig.find(d => d.id === id);
+    
+    // Dice Row Highlights
     diceConfig.forEach(d => {
         const r = document.getElementById(`row-${d.id}`);
         if (r && d.id !== 'wild') { r.style.backgroundColor = ""; r.style.color = ""; }
@@ -165,6 +175,7 @@ function setActiveInput(id) {
         activeRow.style.color = config.text; 
     }
 
+    // Keypad Logic
     document.querySelectorAll('.kp-btn').forEach(b => {
         if (id === 'wild') {
             b.classList.add('wild-gradient');
@@ -178,28 +189,6 @@ function setActiveInput(id) {
     updateKpDisplay();
 }
 
-function calculateRoundTotal(round) {
-    let total = 0;
-    const wildValues = round.wild || [];
-    const wildTotal = wildValues.reduce((a, b) => a + b, 0);
-
-    diceConfig.filter(d => !d.isWild).forEach(d => {
-        const vals = round[d.id] || [];
-        let baseSum = vals.reduce((a, b) => a + b, 0);
-        
-        // Inject Wild Value
-        if (round.wildTarget === d.id) baseSum += wildTotal;
-
-        let score = baseSum;
-        if (d.id === 'purple') score = baseSum * 2;
-        else if (d.id === 'blue' && round.blueHasSparkle) score = baseSum * 2;
-        else if (d.id === 'red') score = baseSum * vals.length; // Multiplier strictly based on Red die count
-
-        total += score;
-    });
-    return total;
-}
-
 function updateAllDisplays() {
     const round = activeGame.rounds[activeGame.currentRound];
     const wildValues = round.wild || [];
@@ -207,20 +196,20 @@ function updateAllDisplays() {
 
     diceConfig.forEach(d => {
         const vals = round[d.id] || [];
-        let displayScore = vals.reduce((a, b) => a + b, 0);
+        let score = vals.reduce((a, b) => a + b, 0);
         
         if (d.id !== 'wild') {
-            let adjustedBase = displayScore;
+            let adjustedBase = score;
             if (round.wildTarget === d.id) adjustedBase += wildTotal;
 
-            if(d.id === 'purple') displayScore = adjustedBase * 2;
-            else if(d.id === 'blue' && round.blueHasSparkle) displayScore = adjustedBase * 2;
-            else if(d.id === 'red') displayScore = adjustedBase * vals.length;
-            else displayScore = adjustedBase;
+            if(d.id === 'purple') score = adjustedBase * 2;
+            else if(d.id === 'blue' && round.blueHasSparkle) score = adjustedBase * 2;
+            else if(d.id === 'red') score = adjustedBase * vals.length;
+            else score = adjustedBase;
         }
 
         const sumEl = document.getElementById(`${d.id}-sum`);
-        if (sumEl) sumEl.textContent = displayScore;
+        if (sumEl) sumEl.textContent = score;
 
         const valEl = document.getElementById(`${d.id}-values`);
         if (valEl) valEl.innerHTML = vals.map((v, i) => `<span class="bg-black/20 px-3 py-1 rounded-lg text-sm font-black border border-black/10 text-white">
@@ -228,6 +217,23 @@ function updateAllDisplays() {
     });
     document.getElementById('round-total-display').textContent = calculateRoundTotal(round);
     document.getElementById('grand-total-box').textContent = calculateGrandTotal(activeGame);
+}
+
+function calculateRoundTotal(round) {
+    let total = 0;
+    const wildTotal = (round.wild || []).reduce((a, b) => a + b, 0);
+
+    diceConfig.filter(d => !d.isWild).forEach(d => {
+        const vals = round[d.id] || [];
+        let base = vals.reduce((a, b) => a + b, 0);
+        if (round.wildTarget === d.id) base += wildTotal;
+
+        if (d.id === 'purple') total += (base * 2);
+        else if (d.id === 'blue' && round.blueHasSparkle) total += (base * 2);
+        else if (d.id === 'red') total += (base * vals.length);
+        else total += base;
+    });
+    return total;
 }
 
 // --- Standard Handlers ---
