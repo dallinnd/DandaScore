@@ -93,13 +93,22 @@ function showSplash() {
 
 function showHome() {
     const list = games.map((g, i) => `
-        <div class="bg-[var(--bg-card)] p-5 rounded-2xl mb-4 flex justify-between items-center border border-[var(--border-ui)] shadow-sm" onclick="resumeGame(${i})">
-            <div><div class="text-[10px] font-black opacity-50 uppercase tracking-widest">Game #${games.length - i}</div>
-            <div class="text-lg font-bold">${g.date}</div></div>
-            <div class="flex items-center gap-4">
-                <div class="text-3xl font-black" style="color: var(--color-score)">${calculateGrandTotal(g)}</div>
-                <button onclick="deleteGame(event, i)" class="p-2 rounded-full" style="background: rgba(239, 68, 68, 0.1); color: var(--color-delete)">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+        <div class="bg-[var(--bg-card)] p-5 pr-4 rounded-2xl mb-4 flex justify-between items-center border border-[var(--border-ui)] shadow-sm active:scale-[0.98] transition-all" onclick="resumeGame(${i})">
+            <div class="flex-1 min-w-0">
+                <div class="text-[10px] font-black opacity-50 uppercase tracking-widest truncate">Game #${games.length - i}</div>
+                <div class="text-lg font-bold truncate">${g.date}</div>
+            </div>
+            
+            <div class="flex items-center gap-6 ml-4">
+                <div class="text-3xl font-black text-right" style="color: var(--color-score)">
+                    ${calculateGrandTotal(g)}
+                </div>
+                <button onclick="deleteGame(event, ${i})" 
+                    class="p-3 rounded-xl transition-colors hover:bg-red-500/20 active:bg-red-500/30" 
+                    style="background: rgba(239, 68, 68, 0.08); color: var(--color-delete)">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
                 </button>
             </div>
         </div>`).join('');
@@ -108,12 +117,14 @@ function showHome() {
         <div class="p-6 h-full flex flex-col animate-fadeIn">
             <div class="flex justify-between items-center mb-8">
                 <h1 class="text-4xl font-black tracking-tighter">History</h1>
-                <button onclick="toggleMenu()" class="p-2 bg-black/5 rounded-xl">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" stroke-linecap="round" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                <button onclick="toggleMenu()" class="p-2 bg-black/5 rounded-xl transition-transform active:scale-90">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-width="2.5" stroke-linecap="round" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
                 </button>
             </div>
-            <div class="flex-1 overflow-y-auto">${list || '<p class="opacity-40 italic text-center py-20">No history found.</p>'}</div>
-            <button onclick="startNewGame()" class="w-full bg-green-600 py-5 rounded-3xl font-black text-xl text-white mt-6 shadow-xl shadow-green-600/20">NEW GAME</button>
+            <div class="flex-1 overflow-y-auto pr-1">${list || '<p class="opacity-40 italic text-center py-20">No history found.</p>'}</div>
+            <button onclick="startNewGame()" class="w-full bg-green-600 py-5 rounded-3xl font-black text-xl text-white mt-6 shadow-xl shadow-green-600/20 active:scale-[0.97] transition-transform">NEW GAME</button>
         </div>`;
 }
 
