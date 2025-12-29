@@ -1,46 +1,32 @@
 body {
     box-sizing: border-box;
     font-family: system-ui, -apple-system, sans-serif;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.dice-input {
-    transition: all 0.2s ease;
-}
-
-.dice-input:focus {
-    transform: scale(1.02);
-}
-
-.plus-button {
-    transition: all 0.15s ease;
-}
-
-.plus-button:active {
-    transform: scale(0.95);
-}
-
-/* Custom Scrollbar for dark mode */
-::-webkit-scrollbar {
-    width: 8px;
-}
-::-webkit-scrollbar-track {
-    background: #1e293b;
-}
-::-webkit-scrollbar-thumb {
-    background: #334155;
-    border-radius: 4px;
-}
-
-.splash-screen {
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    animation: fadeIn 1s ease-in;
+.animate-fadeIn {
+    animation: fadeIn 0.4s ease-out forwards;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #1e293b; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+/* Prevent text selection on buttons */
+button { user-select: none; }
+
+.splash-screen {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
 }
