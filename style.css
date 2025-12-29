@@ -7,13 +7,12 @@ body {
 .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-/* Layout Splits */
+/* Screen Split Logic */
 .scroll-area { height: 65%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-.keypad-area { height: 35%; position: relative; z-index: 50; }
+.keypad-area { height: 35%; position: relative; z-index: 50; background-color: #0f172a; border-top: 1px solid #1e293b; }
 
 .dice-row { transition: background-color 0.2s ease, color 0.2s ease; }
 
-/* Detached White Total Box at the bottom of the list */
 .grand-total-footer {
     background-color: white;
     color: #0f172a;
@@ -25,8 +24,13 @@ body {
     margin-bottom: 2rem;
 }
 
-.kp-btn { transition: all 0.15s ease; border-radius: 14px; font-weight: 800; font-size: 1.5rem; }
-.kp-btn:active { transform: scale(0.9); filter: brightness(1.3); }
+.kp-btn { 
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.1s ease; 
+    border-radius: 14px; 
+    font-weight: 800; 
+    font-size: 1.5rem; 
+}
+.kp-btn:active { transform: scale(0.9); }
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
