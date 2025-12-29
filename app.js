@@ -15,7 +15,6 @@ let activeInputField = null;
 
 const app = document.getElementById('app');
 
-// --- Navigation ---
 function showSplash() {
     app.innerHTML = `<div class="h-full flex flex-col items-center justify-center bg-slate-900" onclick="showHome()">
         <h1 class="text-6xl font-black text-green-400">PANDA</h1>
@@ -40,7 +39,7 @@ function showHome() {
     app.innerHTML = `<div class="p-6 h-full flex flex-col animate-fadeIn">
         <h1 class="text-4xl font-black mb-8 tracking-tighter">History</h1>
         <div class="flex-1 overflow-y-auto">${list || '<p class="text-slate-600 italic text-center py-20">No games saved yet.</p>'}</div>
-        <button onclick="startNewGame()" class="w-full bg-green-500 py-5 rounded-3xl font-black text-xl text-black mt-6 shadow-xl shadow-green-500/20">NEW GAME</button>
+        <button onclick="startNewGame()" class="w-full bg-green-500 py-5 rounded-3xl font-black text-xl text-black mt-6">NEW GAME</button>
     </div>`;
 }
 
@@ -70,7 +69,7 @@ function renderGame() {
                     let specialHeader = "";
                     if (dice.id === 'blue') {
                         specialHeader = `
-                        <button onclick="toggleSparkle()" class="w-full py-3 mb-2 rounded-xl font-black uppercase tracking-widest text-xs transition-all ${roundData.blueHasSparkle ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-700 text-slate-500'}">
+                        <button id="sparkle-btn" onclick="toggleSparkle()" class="w-full py-3 mb-2 rounded-xl font-black uppercase tracking-widest text-xs transition-all ${roundData.blueHasSparkle ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-800 text-slate-500'}">
                             ${roundData.blueHasSparkle ? 'Sparkle Activated ✨🤩' : 'No Sparkle'}
                         </button>`;
                     }
@@ -78,22 +77,22 @@ function renderGame() {
                 }).join('')}
 
                 <div class="grand-total-footer animate-fadeIn">
-                    <span class="text-[10px] font-black uppercase tracking-[0.2em] block mb-1">Grand Total</span>
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] block mb-1 text-slate-400">Grand Total</span>
                     <span id="grand-total-box" class="text-5xl font-black">0</span>
                 </div>
             </div>
         </div>
 
-        <div id="keypad-container" class="keypad-area bg-slate-900 border-t border-slate-700 p-4 shadow-2xl flex flex-col">
+        <div id="keypad-container" class="keypad-area p-4 shadow-2xl flex flex-col">
             <div id="active-input-display" class="text-center text-xs font-black mb-3 h-5 tracking-[0.2em] uppercase opacity-50">-</div>
             <div class="grid grid-cols-4 gap-2 flex-1">
-                ${[1,2,3].map(n => `<button onclick="kpInput('${n}')" class="kp-btn bg-white/10 text-white">${n}</button>`).join('')}
-                <button onclick="kpToggleNeg()" class="kp-btn bg-red-500/20 text-white">+/-</button>
-                ${[4,5,6].map(n => `<button onclick="kpInput('${n}')" class="kp-btn bg-white/10 text-white">${n}</button>`).join('')}
-                <button onclick="kpInput('.')" class="kp-btn bg-white/10 text-white">.</button>
-                ${[7,8,9,0].map(n => `<button onclick="kpInput('${n}')" class="kp-btn bg-white/10 text-white">${n}</button>`).join('')}
+                ${[1,2,3].map(n => `<button onclick="kpInput('${n}')" class="kp-btn bg-white/5 text-white">${n}</button>`).join('')}
+                <button onclick="kpToggleNeg()" class="kp-btn bg-white/5 text-white">+/-</button>
+                ${[4,5,6].map(n => `<button onclick="kpInput('${n}')" class="kp-btn bg-white/5 text-white">${n}</button>`).join('')}
+                <button onclick="kpInput('.')" class="kp-btn bg-white/5 text-white">.</button>
+                ${[7,8,9,0].map(n => `<button onclick="kpInput('${n}')" class="kp-btn bg-white/5 text-white">${n}</button>`).join('')}
                 <button onclick="kpClear()" class="kp-btn bg-white/5 text-[10px] text-slate-400 uppercase">CLR</button>
-                <button id="enter-btn" onclick="kpEnter()" class="col-span-3 bg-green-600 text-white font-black text-xl shadow-lg">ENTER</button>
+                <button id="enter-btn" onclick="kpEnter()" class="col-span-3 bg-green-600 text-white font-black text-xl">ENTER</button>
             </div>
         </div>`;
     updateAllDisplays();
@@ -114,6 +113,8 @@ function renderDiceRow(dice) {
 function setActiveInput(id) {
     activeInputField = id;
     const config = diceConfig.find(d => d.id === id);
+    
+    // Dice Row Highlights
     diceConfig.forEach(d => {
         const r = document.getElementById(`row-${d.id}`);
         if (r) { r.style.backgroundColor = ""; r.style.color = ""; r.style.borderColor = "transparent"; }
@@ -121,21 +122,21 @@ function setActiveInput(id) {
     const activeRow = document.getElementById(`row-${id}`);
     if (activeRow) { activeRow.style.backgroundColor = config.color; activeRow.style.color = config.text; }
 
-    const keypad = document.getElementById('keypad-container');
-    keypad.style.backgroundColor = config.color;
-    keypad.style.transition = "background-color 0.4s ease";
-    
+    // KEYBOARD KEYS COLORING ONLY
     document.querySelectorAll('.kp-btn').forEach(b => {
-        b.style.backgroundColor = config.text === '#fff' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)';
+        b.style.backgroundColor = config.color;
         b.style.color = config.text;
     });
+
     const enter = document.getElementById('enter-btn');
-    enter.style.backgroundColor = config.text === '#fff' ? '#fff' : '#000';
-    enter.style.color = config.text === '#fff' ? '#000' : '#fff';
+    if (enter) {
+        enter.style.backgroundColor = config.text === '#fff' ? '#fff' : '#000';
+        enter.style.color = config.text === '#fff' ? '#000' : '#fff';
+    }
     updateKpDisplay();
 }
 
-// --- Logic ---
+// --- Logic (Partial Re-render included) ---
 
 function updateAllDisplays() {
     const round = activeGame.rounds[activeGame.currentRound];
@@ -152,13 +153,29 @@ function updateAllDisplays() {
 
         const valEl = document.getElementById(`${d.id}-values`);
         if (valEl) valEl.innerHTML = vals.map((v, i) => `<span class="bg-black/20 px-3 py-1 rounded-lg text-sm font-black border border-black/10">
-            ${v} <button onclick="event.stopPropagation(); removeVal('${d.id}', ${i})" class="ml-2 font-black">×</button></span>`).join('');
+            ${v} <button onclick="event.stopPropagation(); removeVal('${d.id}', ${i})" class="ml-2">×</button></span>`).join('');
     });
     document.getElementById('round-total-display').textContent = calculateRoundTotal(round);
     document.getElementById('grand-total-box').textContent = calculateGrandTotal(activeGame);
     if (activeInputField) setActiveInput(activeInputField);
 }
 
+function toggleSparkle() {
+    const roundData = activeGame.rounds[activeGame.currentRound];
+    roundData.blueHasSparkle = !roundData.blueHasSparkle;
+    
+    // PARTIAL RE-RENDER: Update only the sparkle button element
+    const btn = document.getElementById('sparkle-btn');
+    if (btn) {
+        btn.innerHTML = roundData.blueHasSparkle ? 'Sparkle Activated ✨🤩' : 'No Sparkle';
+        btn.className = `w-full py-3 mb-2 rounded-xl font-black uppercase tracking-widest text-xs transition-all ${roundData.blueHasSparkle ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-800 text-slate-500'}`;
+    }
+    
+    // Update the scores without refreshing the whole page
+    updateAllDisplays();
+}
+
+// --- Rest of the Standard Handlers ---
 function calculateRoundTotal(round) {
     let s = 0;
     diceConfig.forEach(d => {
@@ -171,7 +188,6 @@ function calculateRoundTotal(round) {
     });
     return s;
 }
-
 function calculateGrandTotal(game) { return game.rounds.reduce((total, round) => total + calculateRoundTotal(round), 0); }
 function kpInput(v) { keypadValue += v; updateKpDisplay(); }
 function kpClear() { keypadValue = ''; updateKpDisplay(); }
@@ -182,8 +198,8 @@ function kpToggleNeg() {
     updateKpDisplay();
 }
 function updateKpDisplay() {
-    const display = document.getElementById('active-input-display');
-    if (display) display.textContent = keypadValue || (activeInputField ? `Adding to ${activeInputField.toUpperCase()}` : '-');
+    const d = document.getElementById('active-input-display');
+    if (d) d.textContent = keypadValue || (activeInputField ? `Adding to ${activeInputField.toUpperCase()}` : '-');
 }
 function kpEnter() {
     if (!activeInputField || keypadValue === '' || keypadValue === '-') return;
@@ -195,7 +211,6 @@ function changeRound(s) {
     if (next >= 0 && next < 10) { activeGame.currentRound = next; renderGame(); }
 }
 function removeVal(id, idx) { activeGame.rounds[activeGame.currentRound][id].splice(idx, 1); updateAllDisplays(); saveGame(); }
-function toggleSparkle() { activeGame.rounds[activeGame.currentRound].blueHasSparkle = !activeGame.rounds[activeGame.currentRound].blueHasSparkle; renderGame(); }
 function saveGame() {
     const idx = games.findIndex(g => g.id === activeGame.id);
     if (idx > -1) games[idx] = activeGame; else games.unshift(activeGame);
@@ -207,6 +222,6 @@ function startNewGame() {
     }; renderGame();
 }
 function resumeGame(index) { activeGame = games[index]; renderGame(); }
-function deleteGame(event, index) { event.stopPropagation(); if (confirm("Delete this game?")) { games.splice(index, 1); localStorage.setItem('panda_games', JSON.stringify(games)); showHome(); } }
+function deleteGame(event, index) { event.stopPropagation(); if (confirm("Delete game history?")) { games.splice(index, 1); localStorage.setItem('panda_games', JSON.stringify(games)); showHome(); } }
 
 showSplash();
