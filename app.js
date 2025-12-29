@@ -15,8 +15,9 @@ let activeInputField = null;
 
 const app = document.getElementById('app');
 
+// --- Navigation ---
 function showSplash() {
-    app.innerHTML = `<div class="h-full flex flex-col items-center justify-center cursor-pointer" onclick="showHome()">
+    app.innerHTML = `<div class="h-full flex flex-col items-center justify-center bg-slate-900" onclick="showHome()">
         <h1 class="text-6xl font-black text-green-400">PANDA</h1>
         <h2 class="text-2xl font-bold text-slate-500 tracking-[0.3em]">ROYALE</h2>
         <p class="mt-12 text-slate-600 animate-pulse font-bold uppercase text-xs tracking-widest">Tap to Play</p>
@@ -69,7 +70,7 @@ function renderGame() {
                     let specialHeader = "";
                     if (dice.id === 'blue') {
                         specialHeader = `
-                        <button onclick="toggleSparkle()" class="w-full py-3 mb-2 rounded-xl font-black uppercase tracking-widest text-xs transition-all ${roundData.blueHasSparkle ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-800 text-slate-500'}">
+                        <button onclick="toggleSparkle()" class="w-full py-3 mb-2 rounded-xl font-black uppercase tracking-widest text-xs transition-all ${roundData.blueHasSparkle ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-700 text-slate-500'}">
                             ${roundData.blueHasSparkle ? 'Sparkle Activated ✨🤩' : 'No Sparkle'}
                         </button>`;
                     }
@@ -92,7 +93,7 @@ function renderGame() {
                 <button onclick="kpInput('.')" class="kp-btn bg-white/10 text-white">.</button>
                 ${[7,8,9,0].map(n => `<button onclick="kpInput('${n}')" class="kp-btn bg-white/10 text-white">${n}</button>`).join('')}
                 <button onclick="kpClear()" class="kp-btn bg-white/5 text-[10px] text-slate-400 uppercase">CLR</button>
-                <button id="enter-btn" onclick="kpEnter()" class="col-span-3 bg-green-600 text-white font-black text-xl">ENTER</button>
+                <button id="enter-btn" onclick="kpEnter()" class="col-span-3 bg-green-600 text-white font-black text-xl shadow-lg">ENTER</button>
             </div>
         </div>`;
     updateAllDisplays();
@@ -108,7 +109,7 @@ function renderDiceRow(dice) {
     </div>`;
 }
 
-// --- Style Updates ---
+// --- Dynamic Styling ---
 
 function setActiveInput(id) {
     activeInputField = id;
@@ -118,14 +119,11 @@ function setActiveInput(id) {
         if (r) { r.style.backgroundColor = ""; r.style.color = ""; r.style.borderColor = "transparent"; }
     });
     const activeRow = document.getElementById(`row-${id}`);
-    if (activeRow) {
-        activeRow.style.backgroundColor = config.color;
-        activeRow.style.color = config.text;
-    }
+    if (activeRow) { activeRow.style.backgroundColor = config.color; activeRow.style.color = config.text; }
 
     const keypad = document.getElementById('keypad-container');
     keypad.style.backgroundColor = config.color;
-    keypad.style.transition = "background-color 0.3s ease";
+    keypad.style.transition = "background-color 0.4s ease";
     
     document.querySelectorAll('.kp-btn').forEach(b => {
         b.style.backgroundColor = config.text === '#fff' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)';
@@ -154,7 +152,7 @@ function updateAllDisplays() {
 
         const valEl = document.getElementById(`${d.id}-values`);
         if (valEl) valEl.innerHTML = vals.map((v, i) => `<span class="bg-black/20 px-3 py-1 rounded-lg text-sm font-black border border-black/10">
-            ${v} <button onclick="event.stopPropagation(); removeVal('${d.id}', ${i})" class="ml-2">×</button></span>`).join('');
+            ${v} <button onclick="event.stopPropagation(); removeVal('${d.id}', ${i})" class="ml-2 font-black">×</button></span>`).join('');
     });
     document.getElementById('round-total-display').textContent = calculateRoundTotal(round);
     document.getElementById('grand-total-box').textContent = calculateGrandTotal(activeGame);
@@ -184,8 +182,8 @@ function kpToggleNeg() {
     updateKpDisplay();
 }
 function updateKpDisplay() {
-    const d = document.getElementById('active-input-display');
-    if (d) d.textContent = keypadValue || (activeInputField ? `Adding to ${activeInputField.toUpperCase()}` : '-');
+    const display = document.getElementById('active-input-display');
+    if (display) display.textContent = keypadValue || (activeInputField ? `Adding to ${activeInputField.toUpperCase()}` : '-');
 }
 function kpEnter() {
     if (!activeInputField || keypadValue === '' || keypadValue === '-') return;
