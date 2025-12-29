@@ -1,43 +1,45 @@
 :root {
-    /* Dark Mode (Default) */
+    /* Dark Mode (Default Navy) */
     --bg-main: #0f172a;
     --bg-card: rgba(30, 41, 59, 0.5);
     --bg-keypad: #0f172a;
     --text-primary: #f1f5f9;
     --text-secondary: #94a3b8;
     --border-ui: #1e293b;
-    --base-font-size: 16px;
+    --color-score: #16a34a; /* Darker Green (green-600) */
+    --color-delete: #dc2626; /* Darker Red (red-600) */
 }
 
 body.light-theme {
     /* Light Mode (Off-white / Light Grey) */
     --bg-main: #f3f4f6;
-    --bg-card: #ffffff;
+    --bg-card: #f9fafb; /* Lighter grey for containers */
     --bg-keypad: #e5e7eb;
-    --text-primary: #111827; /* Dark text for light background */
+    --text-primary: #111827;
     --text-secondary: #4b5563;
     --border-ui: #d1d5db;
+    --color-score: #15803d; /* Even Darker Green for light mode (green-700) */
+    --color-delete: #991b1b; /* Even Darker Red for light mode (red-800) */
 }
 
 body {
     background-color: var(--bg-main);
     color: var(--text-primary);
-    font-size: var(--base-font-size);
     transition: background-color 0.3s ease, color 0.3s ease;
     font-family: system-ui, -apple-system, sans-serif;
+    margin: 0;
 }
 
 .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-/* Layout Splits */
 .scroll-area { height: 65%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .keypad-area { height: 35%; position: relative; z-index: 50; background-color: var(--bg-keypad); border-top: 1px solid var(--border-ui); }
 
-.dice-row { background-color: var(--bg-card); border-color: transparent; transition: background-color 0.2s ease, border-color 0.2s ease; }
+.dice-row { background-color: var(--bg-card); border-color: transparent; transition: background-color 0.2s ease; }
 
 .grand-total-footer {
-    background-color: white; /* Always white for contrast */
+    background-color: white;
     color: #0f172a;
     border-radius: 20px;
     padding: 24px;
@@ -47,23 +49,15 @@ body {
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 
-.kp-btn { 
-    transition: all 0.2s ease; 
-    border-radius: 18px; 
-    font-weight: 800; 
-    font-size: 1.75rem; 
-}
+.kp-btn { transition: all 0.2s ease; border-radius: 18px; font-weight: 800; font-size: 1.75rem; }
+.wild-gradient { background: linear-gradient(135deg, #ef4444 0%, #a855f7 50%, #3b82f6 100%) !important; }
 
-.wild-gradient {
-    background: linear-gradient(135deg, #ef4444 0%, #a855f7 50%, #3b82f6 100%) !important;
-}
-
-/* Modal / Menu Styles */
+/* Settings Menu */
 .modal-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.6);
-    backdrop-blur: 4px;
+    backdrop-filter: blur(4px);
     z-index: 100;
     display: flex;
     justify-content: flex-end;
