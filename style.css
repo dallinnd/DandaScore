@@ -1,27 +1,31 @@
 body {
     box-sizing: border-box;
     font-family: system-ui, -apple-system, sans-serif;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.animate-fadeIn {
-    animation: fadeIn 0.3s ease-out forwards;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Smooth color transition for selected rows */
 .dice-row {
-    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+    transition: all 0.2s ease;
 }
 
-.white-total-box {
-    background-color: white;
-    color: #0f172a;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
-    border-radius: 12px;
-    padding: 12px 24px;
-    text-align: center;
+#keypad-container {
+    transition: background-color 0.3s ease;
 }
+
+.kp-btn {
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+}
+
+.kp-btn:active {
+    transform: scale(0.95);
+}
+
+.grand-total-banner {
+    background: white;
+    color: #0f172a;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
