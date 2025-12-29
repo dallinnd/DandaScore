@@ -7,10 +7,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1e293b">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="apple-touch-icon" href="icon-192.png">
 </head>
-<body class="h-full bg-[#0f172a] text-[#f1f5f9] select-none overscroll-none">
-    <div id="app" class="h-full w-full overflow-hidden flex flex-col"></div>
+<body class="h-full bg-[#0f172a] text-[#f1f5f9] select-none overflow-hidden">
+    <div id="app" class="h-full w-full flex flex-col"></div>
     <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
 </body>
 </html>
