@@ -113,6 +113,7 @@ function renderGame() {
 
 function renderDiceRow(dice, roundData) {
     const isBlue = dice.id === 'blue';
+    // We add an ID to the sparkle button so we can target it for partial updates
     const sparkleBtn = isBlue ? `
         <button id="sparkle-btn" onclick="event.stopPropagation(); toggleSparkle()" 
             class="sparkle-btn-full ${roundData.blueHasSparkle ? 'sparkle-on' : 'sparkle-off'}">
@@ -180,8 +181,21 @@ function setActiveInput(id) {
 }
 
 function toggleSparkle() {
-    activeGame.rounds[activeGame.currentRound].blueHasSparkle = !activeGame.rounds[activeGame.currentRound].blueHasSparkle;
-    renderGame();
+    const roundData = activeGame.rounds[activeGame.currentRound];
+    roundData.blueHasSparkle = !roundData.blueHasSparkle;
+
+    // 1. Update the button appearance directly without a full refresh
+    const btn = document.getElementById('sparkle-btn');
+    if (btn) {
+        btn.innerHTML = roundData.blueHasSparkle ? 'Sparkle Activated ✨' : 'Add Sparkle?';
+        btn.className = `sparkle-btn-full ${roundData.blueHasSparkle ? 'sparkle-on' : 'sparkle-off'}`;
+    }
+
+    // 2. Update the math displays only
+    updateAllDisplays();
+    
+    // 3. Save state to localStorage
+    saveGame();
 }
 
 function updateAllDisplays() {
