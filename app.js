@@ -22,7 +22,7 @@ function applySettings() {
     localStorage.setItem('panda_settings', JSON.stringify(settings));
 }
 
-// --- Main Menu & Popups ---
+// --- UI Rendering Functions ---
 
 function showSplash() {
     app.innerHTML = `<div class="h-full flex flex-col items-center justify-center bg-[#0f172a]" onclick="showHome()">
@@ -53,24 +53,6 @@ function showHome() {
         </div>`;
 }
 
-function openGameActions(index) {
-    const overlay = document.createElement('div');
-    overlay.id = 'action-modal';
-    overlay.className = 'modal-overlay animate-fadeIn';
-    overlay.onclick = (e) => { if(e.target === overlay) overlay.remove(); };
-    overlay.innerHTML = `
-        <div class="action-popup">
-            <h2 class="text-2xl font-black mb-8">Game #${games.length - index}</h2>
-            <div class="flex justify-center gap-10">
-                <button onclick="resumeGame(${index})" class="action-btn bg-green-600 text-white shadow-lg"><svg class="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg></button>
-                <button onclick="confirmDelete(${index})" class="action-btn bg-red-600 text-white shadow-lg"><svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
-            </div>
-        </div>`;
-    document.body.appendChild(overlay);
-}
-
-// --- Gameplay Screen ---
-
 function renderGame() {
     const roundNum = activeGame.currentRound + 1;
     const roundData = activeGame.rounds[activeGame.currentRound];
@@ -89,7 +71,7 @@ function renderGame() {
                     <button onclick="changeRound(-1)" class="text-4xl font-bold ${roundNum === 1 ? 'opacity-0 pointer-events-none' : 'text-blue-500'}">←</button>
                     <div class="text-center">
                         <div class="text-xl font-black uppercase">Round ${roundNum}</div>
-                        <div id="round-total-display" class="text-5xl font-black">0</div>
+                        <div id="round-total-display" class="text-5xl font-black leading-none">0</div>
                     </div>
                     <button onclick="changeRound(1)" class="text-4xl font-bold ${roundNum === 10 ? 'opacity-0 pointer-events-none' : 'text-blue-500'}">→</button>
                 </div>
@@ -111,10 +93,16 @@ function renderGame() {
         <div id="keypad-container" class="keypad-area p-4 shadow-2xl flex flex-col">
             <div id="active-input-display" class="text-center text-lg font-black mb-3 h-6 tracking-widest uppercase opacity-60">-</div>
             <div class="grid grid-cols-4 gap-2 flex-1">
-                ${[1,2,3].map(n => `<button onclick="kpInput('${n}')" class="kp-btn bg-black/5 text-inherit text-3xl">${n}</button>`).join('')}
+                <button onclick="kpInput('1')" class="kp-btn bg-black/5 text-inherit text-3xl">1</button>
+                <button onclick="kpInput('2')" class="kp-btn bg-black/5 text-inherit text-3xl">2</button>
+                <button onclick="kpInput('3')" class="kp-btn bg-black/5 text-inherit text-3xl">3</button>
                 <button id="add-btn" onclick="kpEnter()" class="kp-btn bg-green-600 text-white row-span-4 h-full">ADD</button>
-                ${[4,5,6].map(n => `<button onclick="kpInput('${n}')" class="kp-btn bg-black/5 text-inherit text-3xl">${n}</button>`).join('')}
-                ${[7,8,9].map(n => `<button onclick="kpInput('${n}')" class="kp-btn bg-black/5 text-inherit text-3xl">${n}</button>`).join('')}
+                <button onclick="kpInput('4')" class="kp-btn bg-black/5 text-inherit text-3xl">4</button>
+                <button onclick="kpInput('5')" class="kp-btn bg-black/5 text-inherit text-3xl">5</button>
+                <button onclick="kpInput('6')" class="kp-btn bg-black/5 text-inherit text-3xl">6</button>
+                <button onclick="kpInput('7')" class="kp-btn bg-black/5 text-inherit text-3xl">7</button>
+                <button onclick="kpInput('8')" class="kp-btn bg-black/5 text-inherit text-3xl">8</button>
+                <button onclick="kpInput('9')" class="kp-btn bg-black/5 text-inherit text-3xl">9</button>
                 <button onclick="kpClear()" class="kp-btn bg-black/5 text-lg font-bold text-slate-400">CLR</button>
                 <button onclick="kpInput('0')" class="kp-btn bg-black/5 text-inherit text-3xl">0</button>
                 <button onclick="kpToggleNeg()" class="kp-btn bg-black/5 text-inherit text-2xl">+/-</button>
@@ -125,22 +113,21 @@ function renderGame() {
 
 function renderDiceRow(dice, roundData) {
     const isBlue = dice.id === 'blue';
-    const sparkleHtml = isBlue ? `
+    const sparkleBtn = isBlue ? `
         <button id="sparkle-btn" onclick="event.stopPropagation(); toggleSparkle()" 
-            class="sparkle-btn-compact ${roundData.blueHasSparkle ? 'sparkle-on' : 'sparkle-off'}">
-            ${roundData.blueHasSparkle ? 'Sparkle ✨' : 'Add Sparkle?'}
+            class="sparkle-btn-full ${roundData.blueHasSparkle ? 'sparkle-on' : 'sparkle-off'}">
+            ${roundData.blueHasSparkle ? 'Sparkle Activated ✨' : 'Add Sparkle?'}
         </button>` : '';
 
-    return `<div onclick="setActiveInput('${dice.id}')" id="row-${dice.id}" class="dice-row p-5 rounded-2xl border-l-8 border-transparent cursor-pointer">
-        <div class="flex justify-between items-center">
-            <span class="font-black uppercase tracking-tight">${dice.label}</span>
-            <div class="flex items-center gap-4">
-                ${sparkleHtml}
+    return `
+        <div onclick="setActiveInput('${dice.id}')" id="row-${dice.id}" class="dice-row p-5 rounded-2xl border-l-8 border-transparent cursor-pointer">
+            <div class="flex justify-between items-center">
+                <span class="font-black uppercase tracking-tight">${dice.label}</span>
                 <span id="${dice.id}-sum" class="text-3xl font-black">0</span>
             </div>
-        </div>
-        <div id="${dice.id}-values" class="flex flex-wrap gap-2 mt-3 min-h-[10px]"></div>
-    </div>`;
+            <div id="${dice.id}-values" class="flex flex-wrap gap-2 mt-2 min-h-[10px]"></div>
+            ${sparkleBtn}
+        </div>`;
 }
 
 function renderWildDiceSection(dice, roundData) {
@@ -159,25 +146,63 @@ function renderWildDiceSection(dice, roundData) {
         </div>`;
 }
 
-// --- Engine ---
+// --- Logic Engine ---
 
 function setActiveInput(id) {
     activeInputField = id;
     const config = diceConfig.find(d => d.id === id);
+    
     diceConfig.forEach(d => {
         const r = document.getElementById(`row-${d.id}`);
         if (r && d.id !== 'wild') { r.style.backgroundColor = ""; r.style.color = ""; }
     });
-    const activeRow = document.getElementById(`row-${id}`);
-    if (activeRow && id !== 'wild') { activeRow.style.backgroundColor = config.color; activeRow.style.color = config.text; }
 
+    const activeRow = document.getElementById(`row-${id}`);
+    if (activeRow && id !== 'wild') {
+        activeRow.style.backgroundColor = config.color;
+        activeRow.style.color = config.text;
+    }
+
+    // Keypad Logic
     document.querySelectorAll('.kp-btn').forEach(b => {
-        if (id === 'wild') { b.style.backgroundColor = "#ffffff"; b.style.color = "#000000"; }
-        else { b.style.backgroundColor = config.color; b.style.color = config.text; }
+        if (id === 'wild') {
+            b.style.backgroundColor = "#ffffff";
+            b.style.color = "#000000";
+        } else {
+            b.style.backgroundColor = config.color;
+            b.style.color = config.text;
+        }
     });
+
     const addBtn = document.getElementById('add-btn');
-    if (addBtn) { addBtn.style.backgroundColor = (id === 'wild') ? '#16a34a' : (config.text === '#fff' ? '#fff' : '#000'); addBtn.style.color = (id === 'wild') ? '#fff' : (config.text === '#fff' ? '#000' : '#fff'); }
+    if (addBtn) {
+        addBtn.style.backgroundColor = (id === 'wild') ? '#16a34a' : (config.text === '#fff' ? '#fff' : '#000');
+        addBtn.style.color = (id === 'wild') ? '#fff' : (config.text === '#fff' ? '#000' : '#fff');
+    }
     updateKpDisplay();
+}
+
+function toggleSparkle() {
+    const roundData = activeGame.rounds[activeGame.currentRound];
+    roundData.blueHasSparkle = !roundData.blueHasSparkle;
+    renderGame(); // Full render to ensure layout and labels update correctly
+}
+
+// --- Support Functions ---
+
+function calculateRoundTotal(round) {
+    let total = 0;
+    const wildVal = (round.wild || []).reduce((a, b) => a + b, 0);
+    diceConfig.filter(d => !d.isWild).forEach(d => {
+        const vals = round[d.id] || [];
+        let base = vals.reduce((a, b) => a + b, 0);
+        if (round.wildTarget === d.id) base += wildVal;
+        if (d.id === 'purple') total += (base * 2);
+        else if (d.id === 'blue' && round.blueHasSparkle) total += (base * 2);
+        else if (d.id === 'red') total += (base * vals.length);
+        else total += base;
+    });
+    return total;
 }
 
 function updateAllDisplays() {
@@ -204,23 +229,7 @@ function updateAllDisplays() {
     document.getElementById('grand-total-box').textContent = calculateGrandTotal(activeGame);
 }
 
-function calculateRoundTotal(round) {
-    let total = 0;
-    const wildVal = (round.wild || []).reduce((a, b) => a + b, 0);
-    diceConfig.filter(d => !d.isWild).forEach(d => {
-        const vals = round[d.id] || [];
-        let base = vals.reduce((a, b) => a + b, 0);
-        if (round.wildTarget === d.id) base += wildVal;
-        if (d.id === 'purple') total += (base * 2);
-        else if (d.id === 'blue' && round.blueHasSparkle) total += (base * 2);
-        else if (d.id === 'red') total += (base * vals.length);
-        else total += base;
-    });
-    return total;
-}
-
-// --- Standard Handlers ---
-function setWildTarget(id) { activeGame.rounds[activeGame.currentRound].wildTarget = (activeGame.rounds[activeGame.currentRound].wildTarget === id) ? null : id; updateAllDisplays(); renderGame(); saveGame(); }
+// Standard Handlers
 function kpInput(v) { keypadValue += v; updateKpDisplay(); }
 function kpClear() { keypadValue = ''; updateKpDisplay(); }
 function kpToggleNeg() { keypadValue = keypadValue.startsWith('-') ? keypadValue.substring(1) : (keypadValue ? '-' + keypadValue : '-'); updateKpDisplay(); }
@@ -228,15 +237,15 @@ function updateKpDisplay() { const d = document.getElementById('active-input-dis
 function kpEnter() { if (!activeInputField || !keypadValue || keypadValue === '-') return; activeGame.rounds[activeGame.currentRound][activeInputField].push(parseFloat(keypadValue)); kpClear(); updateAllDisplays(); saveGame(); }
 function changeRound(s) { const n = activeGame.currentRound + s; if (n >= 0 && n < 10) { activeGame.currentRound = n; renderGame(); } }
 function removeVal(id, idx) { activeGame.rounds[activeGame.currentRound][id].splice(idx, 1); updateAllDisplays(); saveGame(); }
-function toggleSparkle() { activeGame.rounds[activeGame.currentRound].blueHasSparkle = !activeGame.rounds[activeGame.currentRound].blueHasSparkle; updateAllDisplays(); renderGame(); }
+function setWildTarget(id) { activeGame.rounds[activeGame.currentRound].wildTarget = (activeGame.rounds[activeGame.currentRound].wildTarget === id) ? null : id; updateAllDisplays(); renderGame(); saveGame(); }
 function toggleMenu() { const existing = document.getElementById('menu-overlay'); if (existing) { existing.remove(); return; } const menu = document.createElement('div'); menu.id = 'menu-overlay'; menu.className = 'modal-overlay justify-end animate-fadeIn'; menu.onclick = (e) => { if(e.target === menu) toggleMenu(); }; menu.innerHTML = `<div class="menu-panel flex flex-col"><h2 class="text-xl font-black uppercase mb-10">Settings</h2><button onclick="setTheme('dark')" class="w-full text-left p-4 rounded-2xl border-2 mb-3 ${settings.theme === 'dark' ? 'border-green-600 bg-green-600/10' : 'border-black/5'}">Dark Navy</button><button onclick="setTheme('light')" class="w-full text-left p-4 rounded-2xl border-2 ${settings.theme === 'light' ? 'border-blue-600 bg-blue-600/10' : 'border-black/5'}">Off-White</button><button onclick="clearHistory()" class="mt-auto text-red-600 font-bold p-4 opacity-50 italic">Clear All</button></div>`; document.body.appendChild(menu); }
 function setTheme(t) { settings.theme = t; applySettings(); toggleMenu(); showHome(); }
 function saveGame() { localStorage.setItem('panda_games', JSON.stringify(games)); }
 function calculateGrandTotal(g) { return g.rounds.reduce((t, r) => t + calculateRoundTotal(r), 0); }
 function resumeGame(i) { activeGame = games[i]; if(document.getElementById('action-modal')) document.getElementById('action-modal').remove(); renderGame(); }
-function confirmDelete(i) { if(confirm("Delete?")) { games.splice(i, 1); saveGame(); if(document.getElementById('action-modal')) document.getElementById('action-modal').remove(); showHome(); } }
+function confirmDelete(i) { if(confirm("Delete game?")) { games.splice(i, 1); saveGame(); if(document.getElementById('action-modal')) document.getElementById('action-modal').remove(); showHome(); } }
 function startNewGame() { activeGame = { id: Date.now(), date: new Date().toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), currentRound: 0, rounds: Array(10).fill(null).map(() => ({ yellow: [], purple: [], blue: [], red: [], green: [], clear: [], pink: [], wild: [], wildTarget: null, blueHasSparkle: false })) }; games.unshift(activeGame); saveGame(); renderGame(); }
-function clearHistory() { if(confirm("Clear all history?")) { games = []; saveGame(); toggleMenu(); showHome(); } }
+function clearHistory() { if(confirm("Clear history?")) { games = []; saveGame(); toggleMenu(); showHome(); } }
 
 applySettings();
 showSplash();
