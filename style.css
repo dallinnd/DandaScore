@@ -10,7 +10,7 @@
 }
 
 body.light-theme {
-    /* Light Mode (Off-white / Light Grey) */
+    /* Light Mode (Off-white) */
     --bg-main: #f3f4f6;
     --bg-card: #f9fafb;
     --bg-keypad: #e5e7eb;
@@ -41,7 +41,7 @@ body {
 .round-number-display {
     font-size: 1.4rem;
     font-weight: 900;
-    letter-spacing: -0.02em;
+    text-transform: uppercase;
 }
 
 .prev-round-box {
@@ -52,7 +52,6 @@ body {
     font-weight: 900;
     font-size: 0.75rem;
     margin-bottom: 12px;
-    text-transform: uppercase;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -62,10 +61,9 @@ body {
 .wild-row-static {
     background-color: white !important;
     color: #000 !important;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
 
-/*Sparkle Button*/
+/* Full Width Sparkle Button */
 .sparkle-btn-full {
     width: 100%;
     padding: 14px;
@@ -74,28 +72,25 @@ body {
     font-weight: 900;
     text-transform: uppercase;
     margin-top: 12px;
-    /* This ensures the color change is smooth when toggled */
-    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+    transition: all 0.2s ease;
     border: 2px solid transparent;
 }
 
 .sparkle-on { 
     background-color: #3b82f6; 
     color: white; 
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); 
     border-color: #60a5fa; 
 }
 
 .sparkle-off { 
     background-color: rgba(0, 0, 0, 0.3);
-    color: #94a3b8; 
+    color: var(--text-secondary); 
     border-color: rgba(255, 255, 255, 0.1); 
 }
 
 body.light-theme .sparkle-off {
     background-color: #e5e7eb;
     color: #4b5563;
-    border-color: #d1d5db;
 }
 
 /* Keypad Grid */
@@ -107,7 +102,6 @@ body.light-theme .sparkle-off {
     align-items: center; 
     justify-content: center;
 }
-.kp-btn:active { transform: scale(0.92); }
 
 #add-btn {
     font-size: 1.8rem;
@@ -116,13 +110,7 @@ body.light-theme .sparkle-off {
     letter-spacing: 0.1em;
 }
 
-/* Footer and Modals */
-.grand-total-footer {
-    background-color: white; color: #0f172a;
-    border-radius: 24px; padding: 24px; text-align: center;
-    margin: 2rem 0; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-}
-
+/* Modal and Utility */
 .modal-overlay {
     position: fixed; inset: 0;
     background: rgba(0, 0, 0, 0.4);
@@ -138,7 +126,10 @@ body.light-theme .sparkle-off {
     text-align: center;
 }
 
-.color-chip { transition: all 0.2s ease; border: 2px solid var(--border-ui); }
+.grand-total-footer {
+    background-color: white; color: #0f172a;
+    border-radius: 24px; padding: 24px; text-align: center;
+    margin: 2rem 0; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
 
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+.color-chip { transition: all 0.2s ease; border: 2px solid var(--border-ui); }
