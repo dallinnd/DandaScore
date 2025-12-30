@@ -70,8 +70,8 @@ function renderGame() {
                 <div class="flex items-center gap-6">
                     <button onclick="changeRound(-1)" class="text-4xl font-bold ${roundNum === 1 ? 'opacity-0 pointer-events-none' : 'text-blue-500'}">←</button>
                     <div class="text-center">
-                        <div class="round-number-display uppercase">Round ${roundNum}</div>
-                        <div id="round-total-display" class="text-5xl font-black leading-none">0</div>
+                        <div class="round-number-display">Round ${roundNum}</div>
+                        <div id="round-total-display" class="text-5xl font-black">0</div>
                     </div>
                     <button onclick="changeRound(1)" class="text-4xl font-bold ${roundNum === 10 ? 'opacity-0 pointer-events-none' : 'text-blue-500'}">→</button>
                 </div>
@@ -83,7 +83,7 @@ function renderGame() {
                 <div class="space-y-3">
                     ${diceConfig.map(dice => (dice.isWild) ? renderWildDiceSection(dice, roundData) : renderDiceRow(dice, roundData)).join('')}
                 </div>
-                <div class="grand-total-footer animate-fadeIn">
+                <div class="grand-total-footer">
                     <span class="text-[10px] font-black uppercase opacity-50 block mb-1">Grand Total</span>
                     <span id="grand-total-box" class="text-5xl font-black">0</span>
                 </div>
@@ -113,7 +113,6 @@ function renderGame() {
 
 function renderDiceRow(dice, roundData) {
     const isBlue = dice.id === 'blue';
-    // We add an ID to the sparkle button so we can target it for partial updates
     const sparkleBtn = isBlue ? `
         <button id="sparkle-btn" onclick="event.stopPropagation(); toggleSparkle()" 
             class="sparkle-btn-full ${roundData.blueHasSparkle ? 'sparkle-on' : 'sparkle-off'}">
@@ -135,67 +134,75 @@ function renderWildDiceSection(dice, roundData) {
     const targets = diceConfig.filter(d => d.id !== 'yellow' && d.id !== 'wild');
     let borderColor = roundData.wildTarget ? diceConfig.find(d => d.id === roundData.wildTarget).color : 'transparent';
     return `
-        <div class="mt-8 border-t border-[var(--border-ui)] pt-6">
+        <div class="mt-8 border-t border-[var(--border-ui)] pt-6" id="wild-section-container">
             <div onclick="setActiveInput('wild')" id="row-wild" class="dice-row wild-row-static p-5 rounded-2xl border-l-8 cursor-pointer mb-2" style="border-color: ${borderColor}">
-                <div class="flex justify-between items-center"><span class="font-black uppercase tracking-tight">Wild Dice</span><span id="wild-sum" class="text-3xl font-black">0</span></div>
+                <div class="flex justify-between items-center">
+                    <span class="font-black uppercase tracking-tight">Wild Dice</span>
+                    <span id="wild-sum" class="text-3xl font-black">0</span>
+                </div>
                 <div id="wild-values" class="flex flex-wrap gap-2 mt-3 min-h-[20px]"></div>
             </div>
             <div class="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2 px-2">Assign to:</div>
-            <div class="flex flex-wrap gap-2 mb-4 p-2 bg-black/5 rounded-xl">
+            <div class="flex flex-wrap gap-2 mb-4 p-2 bg-black/5 rounded-xl" id="wild-target-chips">
                 ${targets.map(t => `<button onclick="setWildTarget('${t.id}')" class="color-chip px-2 py-2 rounded-lg text-[10px] font-black uppercase flex-1" style="background: ${roundData.wildTarget === t.id ? t.color : 'transparent'}; color: ${roundData.wildTarget === t.id ? t.text : 'inherit'}; border-color: ${t.color}">${t.id}</button>`).join('')}
             </div>
         </div>`;
 }
 
-// --- Logic ---
-
-function setActiveInput(id) {
-    activeInputField = id;
-    const config = diceConfig.find(d => d.id === id);
-    
-    diceConfig.forEach(d => {
-        const r = document.getElementById(`row-${d.id}`);
-        if (r && d.id !== 'wild') { r.style.backgroundColor = ""; r.style.color = ""; }
-    });
-
-    const activeRow = document.getElementById(`row-${id}`);
-    if (activeRow && id !== 'wild') {
-        activeRow.style.backgroundColor = config.color;
-        activeRow.style.color = config.text;
-    }
-
-    document.querySelectorAll('.kp-btn').forEach(b => {
-        if (id === 'wild') {
-            b.style.backgroundColor = "#ffffff"; b.style.color = "#000000";
-        } else {
-            b.style.backgroundColor = config.color; b.style.color = config.text;
-        }
-    });
-
-    const addBtn = document.getElementById('add-btn');
-    if (addBtn) {
-        addBtn.style.backgroundColor = (id === 'wild') ? '#16a34a' : (config.text === '#fff' ? '#fff' : '#000');
-        addBtn.style.color = (id === 'wild') ? '#fff' : (config.text === '#fff' ? '#000' : '#fff');
-    }
-    updateKpDisplay();
-}
+// --- Partial DOM Rerender Functions ---
 
 function toggleSparkle() {
     const roundData = activeGame.rounds[activeGame.currentRound];
     roundData.blueHasSparkle = !roundData.blueHasSparkle;
-
-    // 1. Update the button appearance directly without a full refresh
     const btn = document.getElementById('sparkle-btn');
     if (btn) {
         btn.innerHTML = roundData.blueHasSparkle ? 'Sparkle Activated ✨' : 'Add Sparkle?';
         btn.className = `sparkle-btn-full ${roundData.blueHasSparkle ? 'sparkle-on' : 'sparkle-off'}`;
     }
-
-    // 2. Update the math displays only
     updateAllDisplays();
-    
-    // 3. Save state to localStorage
     saveGame();
+}
+
+function setWildTarget(targetId) {
+    const roundData = activeGame.rounds[activeGame.currentRound];
+    roundData.wildTarget = roundData.wildTarget === targetId ? null : targetId;
+    
+    // 1. Update the chips visual state directly
+    const chipsContainer = document.getElementById('wild-target-chips');
+    if (chipsContainer) {
+        const targets = diceConfig.filter(d => d.id !== 'yellow' && d.id !== 'wild');
+        chipsContainer.innerHTML = targets.map(t => `<button onclick="setWildTarget('${t.id}')" class="color-chip px-2 py-2 rounded-lg text-[10px] font-black uppercase flex-1" style="background: ${roundData.wildTarget === t.id ? t.color : 'transparent'}; color: ${roundData.wildTarget === t.id ? t.text : 'inherit'}; border-color: ${t.color}">${t.id}</button>`).join('');
+    }
+
+    // 2. Update the container border directly
+    const wildRow = document.getElementById('row-wild');
+    if (wildRow) {
+        wildRow.style.borderColor = roundData.wildTarget ? diceConfig.find(d => d.id === roundData.wildTarget).color : 'transparent';
+    }
+
+    updateAllDisplays();
+    saveGame();
+}
+
+// --- Logic Engine ---
+
+function setActiveInput(id) {
+    activeInputField = id;
+    const config = diceConfig.find(d => d.id === id);
+    diceConfig.forEach(d => {
+        const r = document.getElementById(`row-${d.id}`);
+        if (r && d.id !== 'wild') { r.style.backgroundColor = ""; r.style.color = ""; }
+    });
+    const activeRow = document.getElementById(`row-${id}`);
+    if (activeRow && id !== 'wild') { activeRow.style.backgroundColor = config.color; activeRow.style.color = config.text; }
+
+    document.querySelectorAll('.kp-btn').forEach(b => {
+        if (id === 'wild') { b.style.backgroundColor = "#ffffff"; b.style.color = "#000000"; }
+        else { b.style.backgroundColor = config.color; b.style.color = config.text; }
+    });
+    const addBtn = document.getElementById('add-btn');
+    if (addBtn) { addBtn.style.backgroundColor = (id === 'wild') ? '#16a34a' : (config.text === '#fff' ? '#fff' : '#000'); addBtn.style.color = (id === 'wild') ? '#fff' : (config.text === '#fff' ? '#000' : '#fff'); }
+    updateKpDisplay();
 }
 
 function updateAllDisplays() {
@@ -214,7 +221,8 @@ function updateAllDisplays() {
             else if(d.id === 'red') score = base * vals.length;
             else score = base;
         }
-        if (document.getElementById(`${d.id}-sum`)) document.getElementById(`${d.id}-sum`).textContent = score;
+        const sumEl = document.getElementById(`${d.id}-sum`);
+        if (sumEl) sumEl.textContent = score;
         const valEl = document.getElementById(`${d.id}-values`);
         if (valEl) valEl.innerHTML = vals.map((v, i) => `<span class="bg-black/10 px-3 py-1 rounded-lg text-sm font-black border border-black/5">${v} <button onclick="event.stopPropagation(); removeVal('${d.id}', ${i})" class="ml-2 opacity-30">×</button></span>`).join('');
     });
@@ -237,7 +245,7 @@ function calculateRoundTotal(round) {
     return total;
 }
 
-// Handlers
+// --- Standard Handlers ---
 function kpInput(v) { keypadValue += v; updateKpDisplay(); }
 function kpClear() { keypadValue = ''; updateKpDisplay(); }
 function kpToggleNeg() { keypadValue = keypadValue.startsWith('-') ? keypadValue.substring(1) : (keypadValue ? '-' + keypadValue : '-'); updateKpDisplay(); }
@@ -245,23 +253,14 @@ function updateKpDisplay() { const d = document.getElementById('active-input-dis
 function kpEnter() { if (!activeInputField || !keypadValue || keypadValue === '-') return; activeGame.rounds[activeGame.currentRound][activeInputField].push(parseFloat(keypadValue)); kpClear(); updateAllDisplays(); saveGame(); }
 function changeRound(s) { const n = activeGame.currentRound + s; if (n >= 0 && n < 10) { activeGame.currentRound = n; renderGame(); } }
 function removeVal(id, idx) { activeGame.rounds[activeGame.currentRound][id].splice(idx, 1); updateAllDisplays(); saveGame(); }
-function setWildTarget(id) { activeGame.rounds[activeGame.currentRound].wildTarget = (activeGame.rounds[activeGame.currentRound].wildTarget === id) ? null : id; updateAllDisplays(); renderGame(); saveGame(); }
 function setTheme(t) { settings.theme = t; applySettings(); toggleMenu(); showHome(); }
 function saveGame() { localStorage.setItem('panda_games', JSON.stringify(games)); }
 function calculateGrandTotal(g) { return g.rounds.reduce((t, r) => t + calculateRoundTotal(r), 0); }
-function openGameActions(index) {
-    const overlay = document.createElement('div');
-    overlay.id = 'action-modal';
-    overlay.className = 'modal-overlay animate-fadeIn';
-    overlay.onclick = (e) => { if(e.target === overlay) overlay.remove(); };
-    overlay.innerHTML = `<div class="action-popup"><h2 class="text-2xl font-black mb-8">Game #${games.length - index}</h2><div class="flex justify-center gap-10"><button onclick="resumeGame(${index})" class="action-btn bg-green-600 text-white shadow-lg"><svg class="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg></button><button onclick="confirmDelete(${index})" class="action-btn bg-red-600 text-white shadow-lg"><svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></div></div>`;
-    document.body.appendChild(overlay);
-}
 function resumeGame(i) { activeGame = games[i]; if(document.getElementById('action-modal')) document.getElementById('action-modal').remove(); renderGame(); }
-function confirmDelete(i) { if(confirm("Delete game?")) { games.splice(i, 1); saveGame(); if(document.getElementById('action-modal')) document.getElementById('action-modal').remove(); showHome(); } }
 function startNewGame() { activeGame = { id: Date.now(), date: new Date().toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), currentRound: 0, rounds: Array(10).fill(null).map(() => ({ yellow: [], purple: [], blue: [], red: [], green: [], clear: [], pink: [], wild: [], wildTarget: null, blueHasSparkle: false })) }; games.unshift(activeGame); saveGame(); renderGame(); }
 function toggleMenu() { const existing = document.getElementById('menu-overlay'); if (existing) { existing.remove(); return; } const menu = document.createElement('div'); menu.id = 'menu-overlay'; menu.className = 'modal-overlay justify-end animate-fadeIn'; menu.onclick = (e) => { if(e.target === menu) toggleMenu(); }; menu.innerHTML = `<div class="menu-panel flex flex-col"><h2 class="text-xl font-black uppercase mb-10">Settings</h2><button onclick="setTheme('dark')" class="w-full text-left p-4 rounded-2xl border-2 mb-3 ${settings.theme === 'dark' ? 'border-green-600 bg-green-600/10' : 'border-black/5'}">Dark Navy</button><button onclick="setTheme('light')" class="w-full text-left p-4 rounded-2xl border-2 ${settings.theme === 'light' ? 'border-blue-600 bg-blue-600/10' : 'border-black/5'}">Off-White</button><button onclick="clearHistory()" class="mt-auto text-red-600 font-bold p-4 opacity-50 italic">Clear All</button></div>`; document.body.appendChild(menu); }
-function clearHistory() { if(confirm("Clear all history?")) { games = []; saveGame(); toggleMenu(); showHome(); } }
+function confirmDelete(i) { if(confirm("Delete game?")) { games.splice(i, 1); saveGame(); if(document.getElementById('action-modal')) document.getElementById('action-modal').remove(); showHome(); } }
+function clearHistory() { if(confirm("Clear all?")) { games = []; saveGame(); toggleMenu(); showHome(); } }
 
 applySettings();
 showSplash();
