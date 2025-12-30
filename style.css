@@ -132,4 +132,76 @@ body.light-theme .sparkle-off {
     margin: 2rem 0; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 
+
+/* Wild Grid Layout */
+.wild-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.wild-card {
+    background-color: white !important;
+    color: #000 !important;
+    border-radius: 20px;
+    padding: 12px;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 140px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.wild-card.active-input {
+    border-color: #16a34a;
+    box-shadow: 0 0 15px rgba(22, 163, 74, 0.3);
+}
+
+/* Horizontal Scroll Picker */
+.color-picker-wheel {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 8px;
+    padding: 8px 4px;
+    margin-top: 8px;
+    border-top: 1px solid #eee;
+    -webkit-overflow-scrolling: touch;
+}
+
+.color-picker-wheel::-webkit-scrollbar { display: none; }
+
+.wheel-item {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    scroll-snap-align: center;
+    border: 2px solid #ddd;
+    transition: transform 0.2s;
+}
+
+.wheel-item.selected {
+    transform: scale(1.2);
+    border-color: #000;
+}
+
+.wild-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.wild-ctrl-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+}
+
 .color-chip { transition: all 0.2s ease; border: 2px solid var(--border-ui); }
