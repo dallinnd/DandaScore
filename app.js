@@ -1,12 +1,11 @@
 const diceConfig = [
     { id: 'yellow', label: 'Yellow', color: '#fbbf24', text: '#000' },
     { id: 'purple', label: 'Purple (×2)', color: '#a855f7', text: '#fff' },
-    { id: 'blue', label: 'Blue (Sparkle ×2)', color: '#3b82f6', text: '#fff', hasGlitter: true },
+    { id: 'blue', label: 'Blue (Sparkle ×2)', color: '#3b82f6', text: '#fff' },
     { id: 'red', label: 'Red (Sum × # of Red)', color: '#ef4444', text: '#fff' },
     { id: 'green', label: 'Green', color: '#22c55e', text: '#fff' },
     { id: 'clear', label: 'Clear', color: '#cbd5e1', text: '#000' },
-    { id: 'pink', label: 'Pink/Sage', color: '#ec4899', text: '#fff' },
-    { id: 'wild', label: 'Wild Dice', color: '#ffffff', text: '#000', isWild: true }
+    { id: 'pink', label: 'Pink/Sage', color: '#ec4899', text: '#fff' }
 ];
 
 let games = JSON.parse(localStorage.getItem('panda_games')) || [];
@@ -131,22 +130,85 @@ function renderDiceRow(dice, roundData) {
 }
 
 function renderWildDiceSection(dice, roundData) {
-    const targets = diceConfig.filter(d => d.id !== 'yellow' && d.id !== 'wild');
-    let borderColor = roundData.wildTarget ? diceConfig.find(d => d.id === roundData.wildTarget).color : 'transparent';
-    return `
-        <div class="mt-8 border-t border-[var(--border-ui)] pt-6" id="wild-section-container">
-            <div onclick="setActiveInput('wild')" id="row-wild" class="dice-row wild-row-static p-5 rounded-2xl border-l-8 cursor-pointer mb-2" style="border-color: ${borderColor}">
+    const wildList = roundData.wild || [];
+    
+    const diceHtml = wildList.map((w, idx) => {
+        const targetColor = diceConfig.find(d => d.id === w.target)?.color || '#ddd';
+        return `
+            <div onclick="setActiveWildInput(${idx})" 
+                 class="wild-card ${activeInputField === 'wild-' + idx ? 'active-input' : ''}" 
+                 style="border-left: 8px solid ${targetColor}">
                 <div class="flex justify-between items-center">
-                    <span class="font-black uppercase tracking-tight">Wild Dice</span>
-                    <span id="wild-sum" class="text-3xl font-black">0</span>
+                    <span class="text-[10px] font-black uppercase opacity-40">Wild #${idx + 1}</span>
+                    <span class="text-2xl font-black">${w.value || 0}</span>
                 </div>
-                <div id="wild-values" class="flex flex-wrap gap-2 mt-3 min-h-[20px]"></div>
+                
+                <div class="color-picker-wheel">
+                    ${diceConfig.filter(d => d.id !== 'yellow').map(d => `
+                        <div onclick="event.stopPropagation(); setWildTarget(${idx}, '${d.id}')" 
+                             class="wheel-item ${w.target === d.id ? 'selected' : ''}" 
+                             style="background-color: ${d.color}">
+                        </div>
+                    `).join('')}
+                </div>
             </div>
-            <div class="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2 px-2">Assign to:</div>
-            <div class="flex flex-wrap gap-2 mb-4 p-2 bg-black/5 rounded-xl" id="wild-target-chips">
-                ${targets.map(t => `<button onclick="setWildTarget('${t.id}')" class="color-chip px-2 py-2 rounded-lg text-[10px] font-black uppercase flex-1" style="background: ${roundData.wildTarget === t.id ? t.color : 'transparent'}; color: ${roundData.wildTarget === t.id ? t.text : 'inherit'}; border-color: ${t.color}">${t.id}</button>`).join('')}
+        `;
+    }).join('');
+
+    return `
+        <div class="mt-8 border-t border-[var(--border-ui)] pt-6">
+            <div class="wild-controls">
+                <button onclick="addWildDie()" class="wild-ctrl-btn bg-green-600 text-white">Add Wild +</button>
+                <button onclick="removeWildDie()" class="wild-ctrl-btn bg-red-600 text-white">Remove -</button>
+            </div>
+            <div class="wild-grid">
+                ${diceHtml}
             </div>
         </div>`;
+}
+
+// --- Wild Specific Logic ---
+
+function addWildDie() {
+    const roundData = activeGame.rounds[activeGame.currentRound];
+    if (roundData.wild.length < 9) {
+        roundData.wild.push({ value: 0, target: 'purple' });
+        renderGame();
+        saveGame();
+    }
+}
+
+function removeWildDie() {
+    const roundData = activeGame.rounds[activeGame.currentRound];
+    if (roundData.wild.length > 0) {
+        roundData.wild.pop();
+        activeInputField = null;
+        renderGame();
+        saveGame();
+    }
+}
+
+function setActiveWildInput(idx) {
+    activeInputField = `wild-${idx}`;
+    // Keypad turns white for Wild Dice
+    document.querySelectorAll('.kp-btn').forEach(b => {
+        b.style.backgroundColor = "#ffffff";
+        b.style.color = "#000000";
+    });
+    const addBtn = document.getElementById('add-btn');
+    if (addBtn) {
+        addBtn.style.backgroundColor = '#16a34a';
+        addBtn.style.color = '#fff';
+    }
+    updateKpDisplay();
+    // Refresh only visual borders
+    renderGame(); 
+}
+
+function setWildTarget(idx, targetId) {
+    activeGame.rounds[activeGame.currentRound].wild[idx].target = targetId;
+    renderGame();
+    saveGame();
 }
 
 // --- Partial DOM Rerender Functions ---
@@ -230,13 +292,24 @@ function updateAllDisplays() {
     document.getElementById('grand-total-box').textContent = calculateGrandTotal(activeGame);
 }
 
+// --- Math Engine Update ---
+
 function calculateRoundTotal(round) {
     let total = 0;
-    const wildVal = (round.wild || []).reduce((a, b) => a + b, 0);
-    diceConfig.filter(d => !d.isWild).forEach(d => {
+    
+    // Create an object to store cumulative wild values for each color
+    const wildBonuses = {};
+    (round.wild || []).forEach(w => {
+        wildBonuses[w.target] = (wildBonuses[w.target] || 0) + (w.value || 0);
+    });
+
+    diceConfig.forEach(d => {
         const vals = round[d.id] || [];
         let base = vals.reduce((a, b) => a + b, 0);
-        if (round.wildTarget === d.id) base += wildVal;
+        
+        // Add the specific wild bonuses assigned to this color
+        if (wildBonuses[d.id]) base += wildBonuses[d.id];
+
         if (d.id === 'purple') total += (base * 2);
         else if (d.id === 'blue' && round.blueHasSparkle) total += (base * 2);
         else if (d.id === 'red') total += (base * vals.length);
@@ -250,7 +323,23 @@ function kpInput(v) { keypadValue += v; updateKpDisplay(); }
 function kpClear() { keypadValue = ''; updateKpDisplay(); }
 function kpToggleNeg() { keypadValue = keypadValue.startsWith('-') ? keypadValue.substring(1) : (keypadValue ? '-' + keypadValue : '-'); updateKpDisplay(); }
 function updateKpDisplay() { const d = document.getElementById('active-input-display'); if (d) d.textContent = keypadValue || (activeInputField ? `Adding to ${activeInputField.toUpperCase()}` : '-'); }
-function kpEnter() { if (!activeInputField || !keypadValue || keypadValue === '-') return; activeGame.rounds[activeGame.currentRound][activeInputField].push(parseFloat(keypadValue)); kpClear(); updateAllDisplays(); saveGame(); }
+function kpEnter() {
+    if (!activeInputField || !keypadValue || keypadValue === '-') return;
+    
+    const roundData = activeGame.rounds[activeGame.currentRound];
+    
+    if (activeInputField.startsWith('wild-')) {
+        const idx = parseInt(activeInputField.split('-')[1]);
+        roundData.wild[idx].value = parseFloat(keypadValue);
+    } else {
+        roundData[activeInputField].push(parseFloat(keypadValue));
+    }
+    
+    kpClear();
+    updateAllDisplays();
+    saveGame();
+}
+
 function changeRound(s) { const n = activeGame.currentRound + s; if (n >= 0 && n < 10) { activeGame.currentRound = n; renderGame(); } }
 function removeVal(id, idx) { activeGame.rounds[activeGame.currentRound][id].splice(idx, 1); updateAllDisplays(); saveGame(); }
 function setTheme(t) { settings.theme = t; applySettings(); toggleMenu(); showHome(); }
