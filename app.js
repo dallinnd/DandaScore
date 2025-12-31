@@ -25,7 +25,7 @@ function applySettings() {
 function showSplash() {
     app.innerHTML = `<div class="h-full flex flex-col items-center justify-center bg-[#0f172a]" onclick="showHome()">
         <h1 class="text-6xl font-black text-green-400">PANDA</h1>
-        <h2 class="text-2xl font-bold text-slate-500 tracking-[0.3em] uppercase">Standard</h2>
+        <h2 class="text-2xl font-bold text-slate-500 tracking-[0.3em] uppercase">Royale</h2>
         <p class="mt-12 text-slate-600 animate-pulse font-bold text-xs uppercase">Tap to Start</p>
     </div>`;
 }
